@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><title>CTP & Flex Billing</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#F5F6FA;--side:#fff;--card:#fff;--ac:#7C3AED;--ac2:#c084fc;--tx:#1a1a24;--mut:#6b6b7b;--bd:#e3e3ec;--ok:#16a34a;--bad:#dc2626}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0A0A0F;--side:#111118;--card:#181820;--tx:#F5F5F5;--mut:#9a9aab;--bd:#292936}}
+:root[data-theme="dark"]{--bg:#0A0A0F;--side:#111118;--card:#181820;--tx:#F5F5F5;--mut:#9a9aab;--bd:#292936}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;transition:background .2s,color .2s}
+#app{display:flex;min-height:100vh}
+.side{width:210px;background:var(--side);border-right:1px solid var(--bd);padding:16px 10px;position:sticky;top:0;height:100vh;flex-shrink:0}
+.side h2{font-size:15px;margin:0 8px 16px;color:var(--ac)}
+.side a{display:block;padding:10px 12px;border-radius:10px;color:var(--mut);cursor:pointer;margin-bottom:2px;font-size:14px}
+.side a:hover{background:var(--bg)}.side a.on{background:var(--ac);color:#fff}
+main{flex:1;padding:20px;min-width:0;max-width:1200px}
+h1{font-size:22px;margin:0 0 16px}h3{margin:0 0 10px;font-size:15px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:16px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:14px;transition:.15s}
+.card.h:hover{border-color:var(--ac);cursor:pointer}
+.big{font-size:22px;font-weight:700}.mut{color:var(--mut);font-size:12px}
+.scroll{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:7px 8px;border-bottom:1px solid var(--bd);text-align:left;white-space:nowrap}th{color:var(--mut);font-weight:600}
+input,select,textarea{background:var(--bg);color:var(--tx);border:1px solid var(--bd);border-radius:8px;padding:8px;font:inherit;font-size:13px;max-width:100%}
+td input,td select{width:100%;min-width:70px}
+button{background:var(--ac);color:#fff;border:0;border-radius:8px;padding:8px 14px;cursor:pointer;font:inherit;font-size:13px}
+button.s{background:transparent;color:var(--tx);border:1px solid var(--bd)}button.d{background:var(--bad)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.bar{height:8px;background:var(--ac);border-radius:4px;min-width:2px}
+.low{color:var(--bad)}.tag{font-size:10px;background:var(--bd);padding:2px 6px;border-radius:6px}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:flex-start;justify-content:center;overflow:auto;padding:20px;z-index:50}
+.md{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:18px;width:100%;max-width:640px}
+.md label{display:block;margin:8px 0 3px;font-size:12px;color:var(--mut)}.md input,.md select,.md textarea{width:100%}
+#toast{position:fixed;bottom:20px;right:20px;background:var(--ac);color:#fff;padding:10px 16px;border-radius:10px;display:none;z-index:99}
+.inv{background:#fff;color:#111;padding:24px;border-radius:8px}.inv th,.inv td{border-color:#ddd}.inv th{color:#444}
+.menu{display:none}
+@media(max-width:760px){.side{position:fixed;left:-220px;z-index:40;transition:.2s}.side.open{left:0}.menu{display:inline-block;margin-bottom:10px}}
+@media print{#app,#toast{display:none!important}.ov{position:static;background:none;padding:0}.md{border:0;max-width:none;padding:0}.noprint{display:none!important}body{background:#fff}@page{size:A4;margin:12mm}}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes pop{from{opacity:0;transform:scale(.95) translateY(8px)}to{opacity:1;transform:none}}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+@keyframes grow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+#pg>*{animation:rise .45s ease both}.grid>*{animation:rise .5s ease both}
+.grid>*:nth-child(2){animation-delay:.05s}.grid>*:nth-child(3){animation-delay:.1s}.grid>*:nth-child(4){animation-delay:.15s}.grid>*:nth-child(5){animation-delay:.2s}.grid>*:nth-child(6){animation-delay:.25s}.grid>*:nth-child(n+7){animation-delay:.3s}
+.ov{animation:fade .2s}.md{animation:pop .28s ease}.bar{transform-origin:left;animation:grow .9s ease both}
+.card{transition:transform .2s,box-shadow .2s,border-color .2s}
+.card.h{text-align:center;padding:20px 14px}.card.h:hover{transform:translateY(-5px);box-shadow:0 12px 30px -8px color-mix(in srgb,var(--ac) 50%,transparent);border-color:var(--ac)}
+button{transition:transform .15s,filter .15s}button:hover{filter:brightness(1.12);transform:translateY(-1px)}button:active{transform:scale(.97)}
+.side a{transition:.2s}.side a:hover{transform:translateX(3px)}
+.top{display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:20;background:var(--bg);padding:6px 0 12px;margin-bottom:8px;border-bottom:1px solid var(--bd)}.top b{font-size:15px}
+.av{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,var(--ac),var(--ac2));color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:19px;margin:0 auto 10px;transition:transform .25s}.card.h:hover .av{transform:scale(1.12) rotate(-6deg)}
+button:not(.s):not(.d),.side a.on{background:linear-gradient(135deg,var(--ac),var(--ac2))}select#clr{width:auto}
+.lg{position:fixed;inset:0;z-index:200;background:var(--bg);display:none;align-items:center;justify-content:center;padding:20px}
+@keyframes shake{0%,100%{transform:none}20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}.shake{animation:shake .4s}
+.pdt{background:rgba(22,163,74,.2);color:var(--ok)}.upt{background:rgba(220,38,38,.2);color:var(--bad)}.tag{padding:3px 9px;font-size:11px;text-transform:capitalize}
+@media(max-width:760px){#who{display:none}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style></head><body>
+<div id="app"><nav class="side" id="side"><h2>CTP & Flex Billing</h2><div id="nav"></div>
+</nav><main><header class="top"><button class="menu s" style="margin:0" onclick="side.classList.toggle('open')">☰</button><b id="ttl"></b><span style="flex:1"></span><span id="who" class="mut"></span><select id="clr" title="Color theme" onchange="setClr(this.value)"></select><button class="s" onclick="toggleTheme()">◐ Light / Dark</button><button class="s" onclick="logout()">Logout</button></header><div id="pg"></div></main></div>
+<div id="toast"></div><div id="login" class="lg"><div class="md" id="lbox" style="max-width:380px"><div style="text-align:center"><div class="av" style="width:64px;height:64px;font-size:26px">R</div><h2 id="lt" style="margin:4px 0">Rana Flex House</h2><div class="mut">Stock &amp; Billing — please sign in</div></div><label>Username</label><input id="lu" autocomplete="username" onkeydown="if(event.key=='Enter')document.getElementById('lp').focus()"><label>Password</label><input type="password" id="lp" autocomplete="current-password" onkeydown="if(event.key=='Enter')doLogin()"><p id="lerr" class="low" style="min-height:20px;margin:8px 0"></p><button style="width:100%" onclick="doLogin()">Sign in</button></div></div><script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+const $=s=>document.querySelector(s),pad=n=>String(n).padStart(2,'0');
+const iso=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const today=iso(new Date()),R=n=>'Rs. '+Math.round(n).toLocaleString('en-PK');
+const uid=p=>p+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const MON=['January','February','March','April','May','June','July','August','September','October','November','December'];
+let mem=null;function load(){try{const v=localStorage.getItem('ctpflex_v1');if(v)return JSON.parse(v)}catch(e){}return mem}
+function save(){mem=db;try{localStorage.setItem('ctpflex_v1',JSON.stringify(db))}catch(e){}}
+function toast(m,bad){const t=$('#toast');t.textContent=m;t.style.background=bad?'var(--bad)':'var(--ac)';t.style.display='block';clearTimeout(t._t);t._t=setTimeout(()=>t.style.display='none',2800)}
+function seed(){
+ const names=['Ali','Raza','Sunny','Taimoor','Usama','Subhan','Billal','Noman','Hamza','Nashit','Qazi'];
+ const d={clients:names.map((n,i)=>({id:uid('c'),name:n,biz:n+' Printers',phone:'0300-'+(1000000+i*37113),addr:'Lahore',open:i%3==0?5000:0,demo:1})),
+ sizes:['10/10','20/20','30/30','40/40'],stock:[],flex:[],tx:[],pay:[],inv:0};
+ const base=new Date();names.slice(0,6).forEach((n,i)=>{for(let k=0;k<3;k++){const dt=new Date(base);dt.setDate(base.getDate()-k*5-i);
+  d.tx.push(k%2?{id:uid('t'),date:iso(dt),cid:d.clients[i].id,cat:'FLEX',w:4,l:10,qty:1+i%2,rate:40,note:'',demo:1}:{id:uid('t'),date:iso(dt),cid:d.clients[i].id,cat:'CTP',size:d.sizes[(i+k)%4],qty:2+i%3,rate:500,note:'',demo:1})}});
+ d.pay.push({id:uid('p'),cid:d.clients[0].id,date:today,amt:2000,demo:1});
+ const T=db0=>db0;db=d;const tgt={'10/10':20,'20/20':40,'30/30':50,'40/40':6};
+ d.sizes.forEach(s=>d.stock.push({id:uid('s'),date:today,size:s,sup:'Opening stock (demo)',qty:tgt[s]+used(s),note:'',demo:1}));
+ d.flex.push({id:uid('f'),date:today,sup:'China Supplier (demo)',roll:'R-001',w:5,l:100,n:2,sqft:1000+usedFlex(),demo:1});return d}
+let db=null;
+const used=s=>db.tx.filter(t=>t.cat=='CTP'&&t.size==s).reduce((a,t)=>a+t.qty,0);
+const added=s=>db.stock.filter(x=>x.size==s).reduce((a,x)=>a+x.qty,0);
+const avail=s=>added(s)-used(s);
+const area=t=>t.w*t.l*t.qty,amt=t=>t.cat=='CTP'?t.qty*t.rate:area(t)*t.rate;
+const usedFlex=()=>db.tx.filter(t=>t.cat=='FLEX').reduce((a,t)=>a+area(t),0);
+const addedFlex=()=>db.flex.reduce((a,x)=>a+x.sqft,0),availFlex=()=>addedFlex()-usedFlex();
+const cl=id=>db.clients.find(c=>c.id==id)||{name:'(deleted)'};
+const billed=(id,f='0000',t='9999')=>db.tx.filter(x=>x.cid==id&&x.date>=f&&x.date<=t).reduce((a,x)=>a+amt(x),0);
+const paid=(id,f='0000',t='9999')=>db.pay.filter(x=>x.cid==id&&x.date>=f&&x.date<=t).reduce((a,x)=>a+x.amt,0);
+const owed=id=>cl(id).open+billed(id)-paid(id);
+function weekRange(y,m,w){const last=new Date(y,m+1,0).getDate(),s=[1,8,15,22][w-1],e=w==4?last:s+6;return[iso(new Date(y,m,s)),iso(new Date(y,m,e))]}
+function modal(h){closeM();const o=document.createElement('div');o.className='ov';o.id='ov';o.innerHTML='<div class="md">'+h+'</div>';document.body.appendChild(o)}
+function closeM(){const o=$('#ov');if(o)o.remove()}
+function toggleTheme(){const r=document.documentElement,dark=getComputedStyle(r).getPropertyValue('--bg').trim()=='#0A0A0F';r.dataset.theme=dark?'light':'dark'}
+const PAGES={Dashboard:dash,Stock:stockPg,'Bill Entry':billPg,'Weekly Bills':weekly,Clients:clients,Reports:reports,'Salaries & Bills':payPg,Settings:settings};let cur='Dashboard';
+function go(p){cur=p;$('#ttl').textContent=p;side.classList.remove('open');$('#nav').innerHTML=Object.keys(PAGES).map(k=>`<a class="${k==p?'on':''}" onclick="go('${k}')">${k}</a>`).join('');PAGES[p]();window.scrollTo(0,0)}
+const side=$('#side');
+/* DASHBOARD */
+function dash(){const wk=new Date();wk.setDate(wk.getDate()-6);const w=iso(wk);
+ const bil=(f,t)=>db.tx.filter(x=>x.date>=f&&x.date<=t).reduce((a,x)=>a+amt(x),0);
+ const out=db.clients.reduce((a,c)=>a+owed(c.id),0),ctp=db.sizes.reduce((a,s)=>a+avail(s),0);
+ const days=[...Array(7)].map((_,i)=>{const d=new Date();d.setDate(d.getDate()-6+i);return[iso(d).slice(5),bil(iso(d),iso(d))]}),mx=Math.max(1,...days.map(d=>d[1]));
+ const rec=[...db.tx].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,6);
+ const low=db.sizes.filter(s=>avail(s)<=10).map(s=>`<div class="low">CTP ${s}: only ${avail(s)} left</div>`).concat(availFlex()<200?['<div class="low">Flex: only '+availFlex()+' sq ft left</div>']:[]);
+ $('#pg').innerHTML=`<h1>Dashboard</h1><div class="grid">${[['CTP Stock',ctp+' plates'],['Flex Stock',availFlex()+' sq ft'],['Clients',db.clients.length],["Today's Billing",R(bil(today,today))],['This Week',R(bil(w,today))],['Outstanding',R(out)]].map(c=>`<div class="card"><div class="mut">${c[0]}</div><div class="big">${c[1]}</div></div>`).join('')}</div>
+ <div class="grid g2"><div class="card"><h3>Daily billing (7 days)</h3>${days.map(d=>`<div class="row" style="margin:4px 0"><span class="mut" style="width:44px">${d[0]}</span><div style="flex:1"><div class="bar" style="width:${d[1]/mx*100}%"></div></div><span class="mut">${R(d[1])}</span></div>`).join('')}</div>
+ <div class="card"><h3>Low stock alerts</h3>${low.join('')||'<span class="mut">All stock levels healthy.</span>'}<h3 style="margin-top:14px">CTP stock usage</h3>${db.sizes.map(s=>`<div class="mut">${s}: used ${used(s)} / added ${added(s)}</div>`).join('')}</div></div>
+ <div class="card scroll"><h3>Recent bill entries</h3>${txTable(rec)||'<p class="mut">No entries yet.</p>'}</div>`}
+function txTable(a){return a.length?`<table><tr><th>Date</th><th>Client</th><th>Item</th><th>Qty/Area</th><th>Rate</th><th>Amount</th><th></th></tr>${a.map(t=>`<tr><td>${t.date}</td><td>${esc(cl(t.cid).name)}</td><td>${t.cat=='CTP'?'CTP '+esc(t.size):'Flex '+t.w+'x'+t.l}</td><td>${t.cat=='CTP'?t.qty:area(t)+' sqft'}</td><td>${t.rate}</td><td>${R(amt(t))}${t.demo?' <span class="tag">demo</span>':''}</td><td><button class="s" onclick="delTx('${t.id}')">Delete</button></td></tr>`).join('')}</table>`:''}
+function delTx(id){ownerOnly('Delete this bill? Its stock will be returned.',()=>{logAct('Deleted a bill');db.tx=db.tx.filter(t=>t.id!=id);save();go(cur);toast('Bill deleted, stock restored')})}
+/* STOCK */
+function stockPg(){$('#pg').innerHTML=`<h1>Stock</h1><h3>CTP Metal Plates</h3><div class="grid">${db.sizes.map(s=>`<div class="card"><div class="big">${s}</div><div class="big ${avail(s)<=10?'low':''}">${avail(s)} <span class="mut">available</span></div><div class="mut">Added ${added(s)} · Used ${used(s)}</div><div class="row" style="margin-top:8px"><button onclick="addStock('${s}')">Add Stock</button><button class="s" onclick="histStock('${s}')">History</button></div></div>`).join('')}</div>
+ <h3>China Flex</h3><div class="card"><div class="grid"><div><div class="mut">Available</div><div class="big">${availFlex()} sq ft</div></div><div><div class="mut">Added</div><div class="big">${addedFlex()}</div></div><div><div class="mut">Used</div><div class="big">${usedFlex()}</div></div></div><div class="row"><button onclick="addFlex()">Add Flex Rolls</button></div>
+ <div class="scroll"><table><tr><th>Date</th><th>Supplier</th><th>Roll</th><th>Size (ft)</th><th>Rolls</th><th>Sq ft</th></tr>${db.flex.map(f=>`<tr><td>${f.date}</td><td>${esc(f.sup)}</td><td>${esc(f.roll)}</td><td>${f.w}x${f.l}</td><td>${f.n}</td><td>${f.sqft}</td></tr>`).join('')}</table></div></div>`}
+function addSize(){const s=prompt('New CTP size (e.g. 23/20):');if(!s)return;if(db.sizes.includes(s.trim()))return toast('Size exists',1);db.sizes.push(s.trim());save();stockPg();toast('Size added')}
+function addStock(s){modal(`<h3>Add stock — CTP ${s}</h3><label>Supplier</label><input id="a1"><label>Date</label><input type="date" id="a2" value="${today}"><label>Quantity</label><input type="number" id="a3" min="1"><label>Notes</label><input id="a4"><div class="row" style="margin-top:12px"><button onclick="doStock('${s}')">Save Stock</button><button class="s" onclick="closeM()">Cancel</button></div>`)}
+function doStock(s){if(!canW())return;const q=+$('#a3').value,sup=$('#a1').value.trim();if(!sup||!(q>0)||!Number.isInteger(q))return toast('Enter supplier and a whole quantity',1);db.stock.push({id:uid('s'),date:$('#a2').value||today,size:s,sup,qty:q,note:$('#a4').value});logAct('Added '+q+' plates to CTP '+s);save();closeM();stockPg();toast('Stock added')}
+function histStock(s){modal(`<h3>History — CTP ${s}</h3><div class="scroll"><table><tr><th>Date</th><th>Supplier</th><th>Qty</th><th>Notes</th></tr>${db.stock.filter(x=>x.size==s).map(x=>`<tr><td>${x.date}</td><td>${esc(x.sup)}</td><td>${x.qty}</td><td>${esc(x.note)}</td></tr>`).join('')}</table></div><button class="s" onclick="closeM()">Close</button>`)}
+function addFlex(){modal(`<h3>Add Flex rolls</h3><label>Supplier</label><input id="f1"><label>Date</label><input type="date" id="f2" value="${today}"><label>Roll name / ID</label><input id="f3"><label>Width (ft)</label><input type="number" id="f4" oninput="fc()"><label>Length (ft)</label><input type="number" id="f5" oninput="fc()"><label>Number of rolls</label><input type="number" id="f6" value="1" oninput="fc()"><p class="big" id="f7">0 sq ft</p><div class="row"><button onclick="doFlex()">Save Rolls</button><button class="s" onclick="closeM()">Cancel</button></div>`)}
+const fc=()=>$('#f7').textContent=(+$('#f4').value*+$('#f5').value*+$('#f6').value||0)+' sq ft';
+function doFlex(){if(!canW())return;const w=+$('#f4').value,l=+$('#f5').value,n=+$('#f6').value,sup=$('#f1').value.trim();if(!sup||!(w>0&&l>0&&n>0))return toast('Fill supplier, width, length, rolls',1);db.flex.push({id:uid('f'),date:$('#f2').value||today,sup,roll:$('#f3').value,w,l,n,sqft:w*l*n});logAct('Added flex '+(w*l*n)+' sq ft');save();closeM();stockPg();toast('Flex stock added')}
+/* BILL ENTRY */
+let rows=[],selC='';const newRow=()=>({date:today,cat:'CTP',size:db.sizes[0],qty:1,w:0,l:0,rate:0,note:''});
+function billPg(){if(!rows.length)rows=[newRow()];if(!selC&&db.clients[0])selC=db.clients[0].id;
+ $('#pg').innerHTML=`<h1>Bill Entry</h1><div class="row"><input id="cs" placeholder="Search client…" oninput="filtC()"><select id="cc" onchange="selC=this.value">${db.clients.map(c=>`<option value="${c.id}" ${c.id==selC?'selected':''}>${esc(c.name)}</option>`).join('')}</select><span class="mut">Invoice #: auto (INV-${db.inv+1})</span></div>
+ <div class="card scroll"><table><tr><th>Date</th><th>Category</th><th>Size / W×L (ft)</th><th>Qty</th><th>Rate</th><th>Total</th><th>Notes</th><th></th></tr>${rows.map((r,i)=>`<tr><td><input type="date" value="${r.date}" onchange="rows[${i}].date=this.value"></td>
+ <td><select onchange="rows[${i}].cat=this.value;billPg()"><option value="CTP" ${r.cat=='CTP'?'selected':''}>CTP</option><option value="FLEX" ${r.cat=='FLEX'?'selected':''}>China Flex</option></select></td>
+ <td>${r.cat=='CTP'?`<select onchange="rows[${i}].size=this.value">${db.sizes.map(s=>`<option ${s==r.size?'selected':''}>${s}</option>`).join('')}</select>`:`<input type="number" placeholder="W" style="width:60px" value="${r.w||''}" oninput="up(${i},'w',this.value)"> × <input type="number" placeholder="L" style="width:60px" value="${r.l||''}" oninput="up(${i},'l',this.value)">`}</td>
+ <td><input type="number" min="1" value="${r.qty}" oninput="up(${i},'qty',this.value)"></td><td><input type="number" min="0" value="${r.rate||''}" placeholder="${r.cat=='CTP'?'per plate':'per sqft'}" oninput="up(${i},'rate',this.value)"></td>
+ <td id="rt${i}"><b>${R(amt(r))}</b></td><td><input value="${esc(r.note)}" oninput="rows[${i}].note=this.value"></td><td><button class="s" onclick="rows.splice(${i},1);billPg()">✕</button></td></tr>`).join('')}</table></div>
+ <div class="row" style="margin-top:12px"><button class="s" onclick="rows.push(newRow());billPg()">+ Add Row</button><button id="sv" onclick="saveAll()">Save All Entries</button><button class="s" onclick="rows=[newRow()];billPg()">Reset</button><b id="gt" style="margin-left:auto">Running total: ${R(rows.reduce((a,r)=>a+amt(r),0))}</b></div>`}
+function up(i,k,v){rows[i][k]=+v||0;$('#rt'+i).innerHTML='<b>'+R(amt(rows[i]))+'</b>';$('#gt').textContent='Running total: '+R(rows.reduce((a,r)=>a+amt(r),0))}
+function filtC(){const q=$('#cs').value.toLowerCase();$('#cc').innerHTML=db.clients.filter(c=>c.name.toLowerCase().includes(q)).map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join('');selC=$('#cc').value}
+function saveAll(){if(!canW())return;const b=$('#sv');if(b.disabled)return;if(!selC)return toast('Select a client',1);
+ const need={},bad=rows.find(r=>!(r.qty>0)||!(r.rate>0)||(r.cat=='FLEX'&&!(r.w>0&&r.l>0)));if(bad)return toast('Every row needs quantity, rate'+(rows.some(r=>r.cat=='FLEX')?' and flex width/length':''),1);
+ rows.forEach(r=>{const k=r.cat=='CTP'?r.size:'FLEX';need[k]=(need[k]||0)+(r.cat=='CTP'?r.qty:area(r))});
+ for(const k in need){const a=k=='FLEX'?availFlex():avail(k);if(need[k]>a)return toast(`Not enough ${k=='FLEX'?'Flex':'CTP '+k} stock: need ${need[k]}, have ${a}`,1)}
+ b.disabled=true;rows.forEach(r=>db.tx.push({id:uid('t'),...r,cid:selC,w:r.w,l:r.l}));const n=rows.length;logAct(n+' bill entries saved for '+cl(selC).name);rows=[newRow()];save();toast(n+' entries saved, stock deducted');billPg()}
+/* WEEKLY BILLS */
+function weekly(){$('#pg').innerHTML=`<h1>Weekly Bills</h1><input id="q" placeholder="Search clients…" oninput="wl()"><div class="grid" id="wg" style="margin-top:12px"></div>`;wl()}
+function wl(){const q=($('#q').value||'').toLowerCase(),d=new Date(),[f,t]=weekRange(d.getFullYear(),d.getMonth(),Math.min(4,Math.ceil(d.getDate()/7))),m1=iso(new Date(d.getFullYear(),d.getMonth(),1));
+ $('#wg').innerHTML=db.clients.filter(c=>c.name.toLowerCase().includes(q)).map(c=>`<div class="card h" onclick="invPick('${c.id}')"><div class="av">${esc((c.name[0]||'?').toUpperCase())}</div><b>${esc(c.name)}</b><div class="mut" style="margin-top:4px">${esc(c.addr||'No address')}</div></div>`).join('')||'<p class="mut">No clients found.</p>'}
+let ip={m:0,y:0,w:1};
+function invPick(id){const d=new Date();ip={id,m:d.getMonth(),y:d.getFullYear(),w:Math.min(4,Math.ceil(d.getDate()/7))};invShow()}
+function invShow(){const c=cl(ip.id),[f,t]=weekRange(ip.y,ip.m,ip.w),items=db.tx.filter(x=>x.cid==ip.id&&x.date>=f&&x.date<=t).sort((a,b)=>a.date.localeCompare(b.date)),
+ prev=c.open+billed(ip.id,'0000',prevDay(f))-paid(ip.id,'0000',prevDay(f)),sub=items.reduce((a,x)=>a+amt(x),0),pay=paid(ip.id,f,t),out=prev+sub-pay,n='INV-'+c.name.slice(0,3).toUpperCase()+'-'+ip.y+pad(ip.m+1)+'W'+ip.w;lastInv={n,c,f,t,items,prev,sub,pay,out};
+ modal(`<div class="noprint"><div class="row"><b>${esc(c.name)}</b><span class="mut">Lifetime billing ${R(billed(ip.id))} · Paid ${R(paid(ip.id))} · Outstanding ${R(owed(ip.id))}</span></div><div class="row"><select onchange="ip.m=+this.value;invShow()">${MON.map((m,i)=>`<option value="${i}" ${i==ip.m?'selected':''}>${m}</option>`).join('')}</select><select onchange="ip.y=+this.value;invShow()">${[2024,2025,2026,2027,2028].map(y=>`<option ${y==ip.y?'selected':''}>${y}</option>`).join('')}</select><select onchange="ip.w=+this.value;invShow()">${[1,2,3,4].map(w=>`<option value="${w}" ${w==ip.w?'selected':''}>Week ${w}</option>`).join('')}</select></div>
+ <div class="row"><button onclick="pdfInv()">Download PDF</button><button class="s" onclick="window.print()">Print</button><button class="s" onclick="shareInv()">Share Image</button><button class="s" onclick="recPay('${ip.id}')">Record Payment</button><button class="s" onclick="closeM()">Close</button></div><p class="mut">Tip: in the print dialog choose “Save as PDF”.</p></div>
+ <div class="inv"><div style="text-align:center"><h2 style="margin:0">${esc((db.biz||'YOUR BUSINESS NAME').toUpperCase())}</h2><div>Weekly Billing Statement</div></div><div class="row" style="justify-content:space-between;margin-top:14px"><div>Invoice: <b>${n}</b><br>Client: <b>${esc(c.name)}</b><br>Phone: ${esc(c.phone)}</div><div>${MON[ip.m]} ${ip.y} — Week ${ip.w}<br>${f} to ${t}</div></div>
+ <table><tr><th>Date</th><th>Category</th><th>Size</th><th>Qty / Area</th><th>Rate</th><th>Amount</th></tr>${items.map(x=>`<tr><td>${x.date}</td><td>${x.cat=='CTP'?'CTP':'China Flex'}</td><td>${x.cat=='CTP'?esc(x.size):x.w+'×'+x.l+' ft'}</td><td>${x.cat=='CTP'?x.qty+' plates':area(x)+' sq ft'}</td><td>${x.rate}</td><td>${R(amt(x))}</td></tr>`).join('')||'<tr><td colspan=6>No entries this week.</td></tr>'}</table>
+ <div style="text-align:right;margin-top:12px;line-height:1.8">Subtotal: <b>${R(sub)}</b><br>Previous balance: ${R(prev)}<br>Payments received: ${R(pay)}<br><span style="font-size:18px">Total outstanding: <b>${R(out)}</b></span></div></div>`)}
+function prevDay(s){const d=new Date(s);d.setDate(d.getDate()-1);return iso(d)}
+function shareTxt(n,o){const txt=`${n} — outstanding ${R(o)}`;if(navigator.share)navigator.share({title:n,text:txt}).catch(()=>{});else{try{navigator.clipboard.writeText(txt);toast('Summary copied')}catch(e){toast('Sharing not supported',1)}}}
+function recPay(id){if(!canW())return;const v=+prompt('Payment amount (PKR):');if(!(v>0))return;db.pay.push({id:uid('p'),cid:id,date:today,amt:v});logAct('Payment '+R(v)+' from '+cl(id).name);save();toast('Payment recorded');invShow()}
+/* CLIENTS */
+function clients(){$('#pg').innerHTML=`<h1>Clients</h1><div class="row"><button onclick="cForm()">+ Add Client</button></div><div class="card scroll"><table><tr><th>Name</th><th>Business</th><th>Phone</th><th>Outstanding</th><th></th></tr>${db.clients.map(c=>`<tr><td>${esc(c.name)}${c.demo?' <span class="tag">demo</span>':''}</td><td>${esc(c.biz)}</td><td>${esc(c.phone)}</td><td>${R(owed(c.id))}</td><td><button class="s" onclick="invPick('${c.id}')">History</button> <button class="s" onclick="cForm('${c.id}')">Edit</button> <button class="d" onclick="delC('${c.id}')">Delete</button></td></tr>`).join('')}</table></div>
+ <div class="row" style="margin-top:12px"><button class="s" onclick="rmDemo()">Remove all demo data</button></div>`}
+function cForm(id){const c=db.clients.find(x=>x.id==id)||{name:'',biz:'',phone:'',addr:'',open:0};modal(`<h3>${id?'Edit':'New'} client</h3><label>Name</label><input id="n1" value="${esc(c.name)}"><label>Business name</label><input id="n2" value="${esc(c.biz)}"><label>Phone</label><input id="n3" value="${esc(c.phone)}"><label>Address</label><input id="n4" value="${esc(c.addr)}"><label>Opening balance</label><input type="number" id="n5" value="${c.open}"><div class="row" style="margin-top:12px"><button onclick="svC('${id||''}')">Save</button><button class="s" onclick="closeM()">Cancel</button></div>`)}
+function svC(id){if(!canW())return;const n=$('#n1').value.trim();if(!n)return toast('Name required',1);const o={name:n,biz:$('#n2').value,phone:$('#n3').value,addr:$('#n4').value,open:+$('#n5').value||0};
+ if(id)Object.assign(db.clients.find(c=>c.id==id),o);else db.clients.push({id:uid('c'),...o});save();closeM();clients();toast('Client saved')}
+function delC(id){ownerOnly('Delete this client? Their past bills stay in the records.',()=>{logAct('Deleted client '+cl(id).name);db.clients=db.clients.filter(c=>c.id!=id);save();clients();toast('Client deleted')})}
+function rmDemo(){ownerOnly('Remove all demo clients, bills, payments and demo stock?',()=>{db.clients=db.clients.filter(x=>!x.demo);db.tx=db.tx.filter(x=>!x.demo);db.pay=db.pay.filter(x=>!x.demo);db.stock=db.stock.filter(x=>!x.demo);db.flex=db.flex.filter(x=>!x.demo);db.staff=db.staff.filter(x=>!x.demo);db.sal=db.sal.filter(x=>!x.demo);db.bills=db.bills.filter(x=>!x.demo);selC='';save();go(cur);toast('Demo data removed')})}
+/* WHATSAPP IMAGE SHARE */
+async function invImg(){const el=document.querySelector('.inv');if(!window.html2canvas||!el)return null;const cv=await html2canvas(el,{scale:2,backgroundColor:'#fff'});return await new Promise(r=>cv.toBlob(r,'image/png'))}
+async function shareInv(){const I=lastInv,b=await invImg();if(!b)return toast('Image library not loaded — check internet',1);
+ const file=new File([b],I.n+'.png',{type:'image/png'});
+ try{if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:I.n});return}}catch(e){if(e&&e.name=='AbortError')return}
+ dl(I.n+'.png',await b.arrayBuffer());toast('Image saved — attach it in WhatsApp')}
+/* SALARIES & BILLS */
+let pv='home',pf='all',pm=today.slice(0,7);
+const PN=m=>{const a=m.split('-');return MON[+a[1]-1]+' '+a[0]},rec=(e,m)=>db.sal.find(x=>x.sid==e.id&&x.month==m);
+const BT=['Electricity Bill','Internet Bill','Gas Bill','Water Bill','Shop Rent','Phone Bill','Maintenance','Other'];
+function seedPay(){const nm=[['Muhammad Usman','Machine Operator',55000],['Abdul Rehman','Machine Operator',50000],['Hamza Ali','Graphic Designer',48000],['Bilal Ahmed','Graphic Designer',45000],['Zeeshan Haider','Graphic Designer',45000],['Faizan Raza','Graphic Designer',42000],['Talha Mehmood','Graphic Designer',40000],['Ahmad Hassan','Graphic Designer',40000],['Saad Iqbal','Graphic Designer',38000],['Usama Tariq','Graphic Designer',38000]],d=new Date(),m=today.slice(0,7);
+ db.staff=nm.map(a=>({id:uid('e'),name:a[0],role:a[1],salary:a[2],demo:1}));db.sal=[];db.bills=[];
+ db.staff.slice(0,6).forEach((e,i)=>db.sal.push({id:uid('y'),sid:e.id,month:m,amt:e.salary,status:'paid',date:iso(new Date(d.getFullYear(),d.getMonth(),Math.min(i+1,d.getDate()))),demo:1}));
+ [['Electricity Bill',85400,'unpaid'],['Internet Bill',6500,'paid'],['Gas Bill',12000,'paid'],['Water Bill',3000,'unpaid'],['Shop Rent',120000,'paid'],['Phone Bill',4200,'unpaid']].forEach(b=>db.bills.push({id:uid('b'),type:b[0],month:m,amt:b[1],status:b[2],date:today,note:'',demo:1}))}
+function payPg(){if(pv=='sal')return salV();if(pv=='bill')return billV();
+ const su=db.staff.filter(e=>{const r=rec(e,pm);return !r||r.status!='paid'}).length,bu=db.bills.filter(b=>b.month==pm&&b.status=='unpaid').length;
+ $('#pg').innerHTML=`<h1>Salaries &amp; Bills</h1><div class="grid g2"><div class="card h" onclick="pv='sal';pf='all';payPg()"><div class="av">👥</div><h3>Staff Salary</h3><div class="mut">${db.staff.length} employees · ${su} unpaid in ${PN(pm)}</div></div><div class="card h" onclick="pv='bill';pf='all';payPg()"><div class="av">🧾</div><h3>Bills</h3><div class="mut">${bu} unpaid in ${PN(pm)}</div></div></div>`}
+const filt=()=>['all','paid','unpaid'].map(f=>`<button class="${pf==f?'':'s'}" onclick="pf='${f}';payPg()">${f[0].toUpperCase()+f.slice(1)}</button>`).join('');
+const sumCards=(a,b,l)=>`<div class="grid"><div class="card"><div class="mut">${l} ${PN(pm)}</div><div class="big">${R(a)}</div></div><div class="card"><div class="mut">Paid</div><div class="big" style="color:var(--ok)">${R(b)}</div></div><div class="card"><div class="mut">Unpaid</div><div class="big low">${R(a-b)}</div></div></div>`;
+function salV(){const rs=db.staff.map(e=>({e,r:rec(e,pm)})),st=x=>x.r&&x.r.status=='paid'?'paid':'unpaid',am=x=>x.r?x.r.amt:x.e.salary,
+ tot=rs.reduce((a,x)=>a+am(x),0),pd=rs.filter(x=>st(x)=='paid').reduce((a,x)=>a+am(x),0),list=rs.filter(x=>pf=='all'||st(x)==pf);
+ $('#pg').innerHTML=`<div class="row"><button class="s" onclick="pv='home';payPg()">← Back</button><h1 style="margin:0">Staff Salary</h1></div><div class="row"><input type="month" value="${pm}" onchange="pm=this.value||pm;payPg()">${filt()}<span style="flex:1"></span><button class="s" onclick="addEmp()">+ Employee</button><button onclick="salForm()">+ Add Salary</button></div>${sumCards(tot,pd,'Payroll')}
+ <div class="card scroll"><table><tr><th>Employee</th><th>Role</th><th>Salary</th><th>Status</th><th>Paid on</th><th></th></tr>${list.map(x=>`<tr><td>${esc(x.e.name)}</td><td>${esc(x.e.role)}</td><td>${R(am(x))}</td><td><span class="tag ${st(x)=='paid'?'pdt':'upt'}">${st(x)}</span></td><td>${st(x)=='paid'?x.r.date:'—'}</td><td>${st(x)=='paid'?`<button class="s" onclick="undoSal('${x.r.id}')">Undo</button>`:`<button onclick="salForm('${x.e.id}')">Mark paid</button>`}</td></tr>`).join('')||'<tr><td colspan=6>Nothing here.</td></tr>'}</table></div>`}
+function addEmpOld(){const n=(prompt('Employee name:')||'').trim();if(!n)return;const r=prompt('Role (e.g. Machine Operator, Graphic Designer):','Graphic Designer'),s=+prompt('Monthly salary (PKR):');if(!(s>0))return toast('Invalid salary',1);db.staff.push({id:uid('e'),name:n,role:r||'Staff',salary:s});logAct('Added employee '+n);save();payPg();toast('Employee added')}
+function addEmp(){if(!canW())return;ownerOnly('Owner password required to add a new employee.',empForm)}
+function empForm(){modal(`<h3>Add employee</h3><label>Full name</label><input id="e1"><label>Role</label><select id="e2"><option>Machine Operator</option><option>Graphic Designer</option><option>Helper</option><option>Accountant</option><option>Other</option></select><label>Monthly salary (PKR)</label><input type="number" id="e3"><div class="row" style="margin-top:12px"><button onclick="svEmp()">Save Employee</button><button class="s" onclick="closeM()">Cancel</button></div>`)}
+function svEmp(){const n=$('#e1').value.trim(),s=+$('#e3').value;if(!n||!(s>0))return toast('Enter name and salary',1);db.staff.push({id:uid('e'),name:n,role:$('#e2').value,salary:s});logAct('Added employee '+n);save();closeM();payPg();toast('Employee added')}
+function salForm(eid){const e0=db.staff.find(e=>e.id==eid)||db.staff[0];if(!e0)return toast('Add an employee first',1);modal(`<h3>Add salary</h3><label>Employee</label><select id="s1" onchange="$('#s3').value=db.staff.find(x=>x.id==this.value).salary">${db.staff.map(e=>`<option value="${e.id}" ${e.id==e0.id?'selected':''}>${esc(e.name)} — ${esc(e.role)}</option>`).join('')}</select><label>Month</label><input type="month" id="s2" value="${pm}"><label>Amount (PKR)</label><input type="number" id="s3" value="${e0.salary}"><label>Status</label><select id="s4"><option value="paid">Paid</option><option value="unpaid">Unpaid</option></select><label>Date</label><input type="date" id="s5" value="${today}"><div class="row" style="margin-top:12px"><button onclick="svSal()">Save</button><button class="s" onclick="closeM()">Cancel</button></div>`)}
+function svSal(){if(!canW())return;const sid=$('#s1').value,m=$('#s2').value,a=+$('#s3').value,s=$('#s4').value,d=$('#s5').value||today;if(!m||!(a>0))return toast('Enter month and amount',1);
+ const r=db.sal.find(x=>x.sid==sid&&x.month==m);if(r){r.amt=a;r.status=s;r.date=d}else db.sal.push({id:uid('y'),sid,month:m,amt:a,status:s,date:d});
+ logAct('Salary '+s+' '+R(a)+' — '+db.staff.find(e=>e.id==sid).name+' ('+m+')');save();closeM();pm=m;payPg();toast('Salary saved')}
+function undoSal(id){ownerOnly('Remove this salary record?',()=>{db.sal=db.sal.filter(x=>x.id!=id);logAct('Removed a salary record');save();payPg();toast('Record removed')})}
+function billV(){const all=db.bills.filter(b=>b.month==pm),list=all.filter(b=>pf=='all'||b.status==pf),sum=a=>a.reduce((s,b)=>s+b.amt,0);
+ $('#pg').innerHTML=`<div class="row"><button class="s" onclick="pv='home';payPg()">← Back</button><h1 style="margin:0">Bills</h1></div><div class="row"><input type="month" value="${pm}" onchange="pm=this.value||pm;payPg()">${filt()}<span style="flex:1"></span><button onclick="billForm()">+ Add Bill</button></div>${sumCards(sum(all),sum(all.filter(b=>b.status=='paid')),'Bills')}
+ <div class="card scroll"><table><tr><th>Bill</th><th>Amount</th><th>Status</th><th>Date</th><th>Notes</th><th></th></tr>${list.map(b=>`<tr><td>${esc(b.type)}</td><td>${R(b.amt)}</td><td><span class="tag ${b.status=='paid'?'pdt':'upt'}">${b.status}</span></td><td>${b.date}</td><td>${esc(b.note||'')}</td><td>${b.status=='unpaid'?`<button onclick="payBill('${b.id}')">Mark paid</button> `:''}<button class="d" onclick="delBill('${b.id}')">Delete</button></td></tr>`).join('')||'<tr><td colspan=6>No bills here.</td></tr>'}</table></div>`}
+function billForm(){modal(`<h3>Add bill</h3><label>Bill type</label><select id="b1">${BT.map(t=>`<option>${t}</option>`).join('')}</select><label>Month</label><input type="month" id="b2" value="${pm}"><label>Amount (PKR)</label><input type="number" id="b3"><label>Status</label><select id="b4"><option value="unpaid">Unpaid</option><option value="paid">Paid</option></select><label>Date</label><input type="date" id="b5" value="${today}"><label>Notes (optional)</label><input id="b6"><div class="row" style="margin-top:12px"><button onclick="svBill()">Save Bill</button><button class="s" onclick="closeM()">Cancel</button></div>`)}
+function svBill(){if(!canW())return;const a=+$('#b3').value,m=$('#b2').value;if(!m||!(a>0))return toast('Enter month and amount',1);db.bills.push({id:uid('b'),type:$('#b1').value,month:m,amt:a,status:$('#b4').value,date:$('#b5').value||today,note:$('#b6').value});logAct('Added '+$('#b1').value+' '+R(a)+' ('+$('#b4').value+')');save();closeM();pm=m;payPg();toast('Bill added')}
+function payBill(id){if(!canW())return;const b=db.bills.find(x=>x.id==id);b.status='paid';b.date=today;logAct('Paid '+b.type+' '+R(b.amt));save();payPg();toast('Marked as paid')}
+function delBill(id){ownerOnly('Delete this bill?',()=>{db.bills=db.bills.filter(x=>x.id!=id);logAct('Deleted a utility bill');save();payPg();toast('Bill deleted')})}
+/* AUTH, USERS, PDF SHARE */
+let sess=null;
+const ownerPw=()=>db.users.find(u=>u.role=='owner').pass;
+const canW=()=>{if(sess&&sess.role=='viewer'){toast('View-only account: cannot add or change data',1);return false}return true};
+function logAct(m){db.log=db.log||[];db.log.push({t:new Date().toISOString(),u:sess?sess.username:'-',m});if(db.log.length>300)db.log.shift();save()}
+function ensureUsers(){if(!db.users)db.users=[{id:uid('u'),name:'Owner',username:'ranaflexhouse',pass:OWNER_PW,role:'owner',on:1}];db.log=db.log||[];if(!db.staff)seedPay();if(!db.biz)db.biz='Rana Flex House';$('#lt').textContent=db.biz}
+function doLogin(){const u=$('#lu').value.trim().toLowerCase(),p=$('#lp').value,x=db.users.find(a=>a.username.toLowerCase()==u&&a.pass===p&&a.on);const b=$('#lbox');
+ if(!x){$('#lerr').textContent='Wrong username or password';b.classList.remove('shake');void b.offsetWidth;b.classList.add('shake');return}
+ sess=x;$('#lerr').textContent='';$('#lp').value='';$('#login').style.display='none';$('#who').textContent=x.name+' · '+x.role;logAct('Logged in');go('Dashboard')}
+function logout(){sess=null;closeM();$('#lu').value='';$('#lp').value='';$('#login').style.display='flex'}
+function settings(){const own=sess&&sess.role=='owner';
+ const acct=`<div class="card"><h3>My account</h3><div class="mut">Signed in as <b>${esc(sess.username)}</b> (${sess.role})</div><button style="margin-top:10px" onclick="chPw('${sess.id}')">Change my password</button></div>`;
+ if(!own){$('#pg').innerHTML='<h1>Settings</h1><div style="max-width:420px">'+acct+'</div>';return}
+ settingsData();
+ $('#pg').insertAdjacentHTML('beforeend',`<div class="grid g2" style="margin-top:12px">${acct}<div class="card"><h3>Who can use this software</h3><div class="mut"><b>Owner</b>: everything, including delete, users and settings.<br><b>Staff</b>: add bills, stock, clients and payments; cannot delete.<br><b>Viewer</b>: read-only access.</div></div></div>
+ <div class="card scroll"><div class="row" style="justify-content:space-between"><h3 style="margin:0">Users &amp; access</h3><button onclick="uForm()">+ Add user</button></div><table><tr><th>Name</th><th>Username</th><th>Role</th><th>Status</th><th></th></tr>${db.users.map(u=>`<tr><td>${esc(u.name)}</td><td>${esc(u.username)}</td><td>${u.role}</td><td>${u.on?'Active':'Disabled'}</td><td>${u.role=='owner'?`<button class="s" onclick="chPw('${u.id}')">Change password</button>`:`<button class="s" onclick="togU('${u.id}')">${u.on?'Disable':'Enable'}</button> <button class="s" onclick="chPw('${u.id}')">Reset password</button> <button class="d" onclick="delU('${u.id}')">Delete</button>`}</td></tr>`).join('')}</table></div>
+ <div class="card scroll" style="margin-top:12px"><h3>Activity log (latest 40)</h3><table><tr><th>Time</th><th>User</th><th>Action</th></tr>${[...db.log].reverse().slice(0,40).map(l=>`<tr><td>${l.t.slice(0,16).replace('T',' ')}</td><td>${esc(l.u)}</td><td>${esc(l.m)}</td></tr>`).join('')||'<tr><td colspan=3>No activity yet.</td></tr>'}</table></div>`)}
+function uForm(){modal(`<h3>Add user</h3><label>Full name</label><input id="u1"><label>Username</label><input id="u2" autocomplete="off"><label>Password (min 6 characters)</label><input id="u3"><label>Role</label><select id="u4"><option value="staff">Staff — add data, no delete</option><option value="viewer">Viewer — read only</option></select><div class="row" style="margin-top:12px"><button onclick="svU()">Create user</button><button class="s" onclick="closeM()">Cancel</button></div>`)}
+function svU(){const n=$('#u1').value.trim(),u=$('#u2').value.trim(),p=$('#u3').value;if(!n||!u||p.length<6)return toast('Enter name, username and a 6+ character password',1);if(db.users.some(x=>x.username.toLowerCase()==u.toLowerCase()))return toast('Username already exists',1);db.users.push({id:uid('u'),name:n,username:u,pass:p,role:$('#u4').value,on:1});logAct('Created user '+u);save();closeM();settings();toast('User created')}
+function togU(id){const u=db.users.find(x=>x.id==id);u.on=u.on?0:1;logAct((u.on?'Enabled ':'Disabled ')+u.username);save();settings()}
+function delU(id){ownerOnly('Delete this user account?',()=>{const u=db.users.find(x=>x.id==id);logAct('Deleted user '+u.username);db.users=db.users.filter(x=>x.id!=id);save();settings();toast('User deleted')})}
+function chPw(id){modal(`<h3>Change password</h3>${id==sess.id?'<label>Current password</label><input id="op" type="password" autocomplete="current-password">':''}<label>New password (min 6 characters)</label><input id="np" type="password"><label>Confirm new password</label><input id="np2" type="password"><div class="row" style="margin-top:12px"><button onclick="svPw('${id}')">Save</button><button class="s" onclick="closeM()">Cancel</button></div>`)}
+function svPw(id){const p=$('#np').value,u=db.users.find(x=>x.id==id);if(id==sess.id&&$('#op').value!==u.pass)return toast('Current password is wrong',1);if(p.length<6)return toast('Minimum 6 characters',1);if(p!==$('#np2').value)return toast('New passwords do not match',1);if(p===u.pass)return toast('New password must be different',1);u.pass=p;logAct('Password changed for '+u.username);save();closeM();toast('Password updated')}
+async function invPdf(){const el=document.querySelector('.inv');
+ if(window.html2canvas&&window.jspdf&&el){try{const cv=await html2canvas(el,{scale:2,backgroundColor:'#fff'}),w=190,h=cv.height*w/cv.width;if(h<=277){const D=new jspdf.jsPDF({unit:'mm',format:'a4'});D.addImage(cv.toDataURL('image/jpeg',.95),'JPEG',10,10,w,h);return D}}catch(e){}}
+ return buildPdf()}
+async function pdfInv(){const D=await invPdf();if(!D)return window.print();dl(lastInv.n+'.pdf',D.output('arraybuffer'))}
+async function shareInvPdf(){const D=await invPdf(),I=lastInv;if(!D)return toast('PDF library not loaded — check internet',1);
+ const file=new File([D.output('blob')],I.n+'.pdf',{type:'application/pdf'});
+ try{if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:I.n,text:'Invoice '+I.n+' — outstanding '+R(I.out)});return}}catch(e){if(e&&e.name=='AbortError')return}
+ dl(I.n+'.pdf',D.output('arraybuffer'));toast('PDF saved — attach it in WhatsApp')}
+/* OWNER PASSWORD (testing) */
+const OWNER_PW='12345678910';let pwFn=null;
+function ownerOnly(msg,fn){if(!sess||sess.role!='owner'){toast('Only the owner can do this',1);return}pwFn=fn;modal(`<h3>Owner password required</h3><p class="mut">${msg}</p><input type="password" id="pw" placeholder="Enter owner password" onkeydown="if(event.key=='Enter')pwOk()"><div class="row" style="margin-top:12px"><button class="d" onclick="pwOk()">Confirm</button><button class="s" onclick="closeM()">Cancel</button></div>`);setTimeout(()=>{const i=$('#pw');i&&i.focus&&i.focus()},60)}
+function pwOk(){if($('#pw').value!==ownerPw()){toast('Wrong password',1);$('#pw').value='';return}const f=pwFn;pwFn=null;closeM();f&&f()}
+/* DOWNLOADS */
+let lastInv=null;
+async function dl(name,data){try{const d=window.claude&&await claude.use('downloads');if(d){await d.save({filename:name,data});toast('Download ready');return}}catch(e){if(e&&e.code=='declined')return}
+ const a=document.createElement('a');a.href=URL.createObjectURL(data instanceof Blob?data:new Blob([data]));a.download=name;a.click()}
+function buildPdf(){const I=lastInv;if(!I||!window.jspdf)return null;
+ const D=new jspdf.jsPDF({unit:'mm',format:'a4'}),M=v=>'Rs. '+Math.round(v).toLocaleString('en-PK');let y=20;
+ D.setFontSize(16);D.text((db.biz||'YOUR BUSINESS NAME').toUpperCase(),105,y,{align:'center'});y+=7;D.setFontSize(11);D.text('Weekly Billing Statement',105,y,{align:'center'});y+=10;
+ D.setFontSize(10);D.text('Invoice: '+I.n,15,y);D.text(MON[ip.m]+' '+ip.y+' - Week '+ip.w,195,y,{align:'right'});y+=6;D.text('Client: '+I.c.name,15,y);D.text(I.f+' to '+I.t,195,y,{align:'right'});y+=6;D.text('Phone: '+(I.c.phone||''),15,y);y+=8;
+ const X=[15,40,62,95,135,195],al=i=>i==5?{align:'right'}:{};D.setFont(undefined,'bold');['Date','Category','Size','Qty / Area','Rate','Amount'].forEach((h,i)=>D.text(h,X[i],y,al(i)));D.setFont(undefined,'normal');y+=2;D.line(15,y,195,y);y+=5;
+ I.items.forEach(x=>{if(y>260){D.addPage();y=20}[x.date,x.cat=='CTP'?'CTP':'China Flex',x.cat=='CTP'?x.size:x.w+'x'+x.l+' ft',x.cat=='CTP'?x.qty+' plates':area(x)+' sq ft',String(x.rate),Math.round(amt(x)).toLocaleString('en-PK')].forEach((v,i)=>D.text(v,X[i],y,al(i)));y+=6});
+ if(!I.items.length){D.text('No entries this week.',15,y);y+=6}
+ y+=2;D.line(15,y,195,y);y+=7;[['Subtotal',I.sub],['Previous balance',I.prev],['Payments received',I.pay]].forEach(a=>{D.text(a[0]+':  '+M(a[1]),195,y,{align:'right'});y+=6});
+ D.setFont(undefined,'bold');D.setFontSize(12);D.text('Total outstanding:  '+M(I.out),195,y+2,{align:'right'});
+ return D}
+/* SETTINGS */
+function settingsData(){$('#pg').innerHTML=`<h1>Settings</h1><div class="grid g2"><div class="card"><h3>Business</h3><div class="mut">Business name (printed on invoices)</div><input id="sb" style="width:100%;margin:6px 0" value="${esc(db.biz||'')}"><button onclick="db.biz=$('#sb').value.trim();save();toast('Saved')">Save</button></div>
+<div class="card"><h3>Data</h3><div class="row"><button onclick="bk()">Download backup (JSON)</button><label class="s" style="border:1px solid var(--bd);border-radius:8px;padding:8px 14px;cursor:pointer;font-size:13px">Restore backup<input type="file" accept=".json" hidden onchange="rs(this)"></label></div><div class="row"><button class="s" onclick="rmDemo()">Remove demo data</button><button class="d" onclick="wipe()">Erase everything</button></div><p class="mut">Week periods: 1–7, 8–14, 15–21, 22–end of month.</p></div></div>`}
+function bk(){const a=document.createElement('a');dl('billing-backup-'+today+'.json',JSON.stringify(db))}
+function rs(i){const f=i.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!d.clients||!d.tx)throw 0;ownerOnly('Replace current data with this backup?',()=>{db=d;ensureUsers();save();go('Settings');toast('Backup restored')})}catch(e){toast('Invalid backup file',1)}};r.readAsText(f)}
+function wipe(){ownerOnly('Erase ALL clients, stock and bills? This cannot be undone.',()=>{db={clients:[],sizes:['10/10','20/20','30/30','40/40'],stock:[],flex:[],tx:[],pay:[],inv:0,biz:db.biz,users:db.users,log:db.log,staff:[],sal:[],bills:[]};selC='';rows=[];save();go('Settings');toast('All data erased')})}
+/* REPORTS */
+function reports(){const f=$('#rf')?.value||today.slice(0,8)+'01',t=$('#rt')?.value||today;
+ const a=db.tx.filter(x=>x.date>=f&&x.date<=t).sort((x,y)=>x.date.localeCompare(y.date)),tot=a.reduce((s,x)=>s+amt(x),0),
+ by={};a.forEach(x=>by[cl(x.cid).name]=(by[cl(x.cid).name]||0)+amt(x));
+ $('#pg').innerHTML=`<h1>Reports</h1><div class="row"><input type="date" id="rf" value="${f}" onchange="reports()"><input type="date" id="rt" value="${t}" onchange="reports()"><button onclick="csv()">Export CSV</button><button class="s" onclick="window.print()">Print / PDF</button></div>
+ <div class="grid"><div class="card"><div class="mut">Billing in range</div><div class="big">${R(tot)}</div></div><div class="card"><div class="mut">CTP plates used</div><div class="big">${a.filter(x=>x.cat=='CTP').reduce((s,x)=>s+x.qty,0)}</div></div><div class="card"><div class="mut">Flex sq ft used</div><div class="big">${a.filter(x=>x.cat=='FLEX').reduce((s,x)=>s+area(x),0)}</div></div></div>
+ <div class="grid g2"><div class="card"><h3>Client-wise billing</h3>${Object.entries(by).map(e=>`<div class="row" style="justify-content:space-between;margin:3px 0"><span>${esc(e[0])}</span><b>${R(e[1])}</b></div>`).join('')||'<span class="mut">No data.</span>'}</div><div class="card"><h3>Outstanding balances</h3>${db.clients.filter(c=>owed(c.id)>0).map(c=>`<div class="row" style="justify-content:space-between;margin:3px 0"><span>${esc(c.name)}</span><b class="low">${R(owed(c.id))}</b></div>`).join('')||'<span class="mut">None.</span>'}</div></div>
+ <div class="card scroll"><h3>Transactions</h3>${txTable(a)||'<p class="mut">No transactions in this range.</p>'}</div>`}
+function csv(){const f=$('#rf').value,t=$('#rt').value,L=[['Date','Client','Category','Size','Qty','Width','Length','Rate','Amount']];
+ db.tx.filter(x=>x.date>=f&&x.date<=t).forEach(x=>L.push([x.date,cl(x.cid).name,x.cat,x.size||'',x.qty,x.w||'',x.l||'',x.rate,amt(x)]));
+ const b=new Blob([L.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n')],{type:'text/csv'}),a=document.createElement('a');b.text().then(s=>dl('report.csv',s))}
+const CLR={Purple:['#7C3AED','#c084fc'],Blue:['#2563EB','#60a5fa'],Emerald:['#059669','#34d399'],Orange:['#EA580C','#fb923c'],Rose:['#E11D48','#fb7185'],Gold:['#B45309','#fbbf24'],Teal:['#0D9488','#5eead4']};
+function setClr(n){const c=CLR[n]||CLR.Purple,s=document.documentElement.style;s.setProperty('--ac',c[0]);s.setProperty('--ac2',c[1]);try{localStorage.setItem('ctpflex_clr',n)}catch(e){}}
+db=load()||seed();save();{let n='Purple';try{n=localStorage.getItem('ctpflex_clr')||n}catch(e){}setClr(n);$('#clr').innerHTML=Object.keys(CLR).map(k=>`<option ${k==n?'selected':''}>${k}</option>`).join('')}ensureUsers();save();$('#login').style.display='flex';
+</script></body></html>
